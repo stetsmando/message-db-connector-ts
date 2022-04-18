@@ -1,0 +1,31 @@
+{
+  "name": "message-db-connector",
+  "version": "0.0.0",
+  "description": "A simple TypeScript interface for MessageDB interaction",
+  "main": "lib",
+  "engines": {
+    "node": ">=16.14.2",
+    "yarn": "1.17.3"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stetsmando/message-db-connector.git"
+  },
+  "keywords": [
+    "message",
+    "db",
+    "eventide",
+    "event",
+    "sourcing",
+    "messagedb",
+    "message",
+    "messages",
+    "store"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stetsmando/message-db-connector/issues"
+  },
+  "homepage": "https://github.com/stetsmando/message-db-connector#readme"
+}
