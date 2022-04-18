@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "airbnb-base",
+    "airbnb-typescript/base"
+  ],
+  "rules": {
+    "import/prefer-default-export": "off",
+    "lines-between-class-members": "off",
+    "@typescript-eslint/lines-between-class-members": "off",
+    "no-console": "off",
+    "no-plusplus": "off"
+  },
+  "env": {
+    "node": true
+  },
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  }
+}
