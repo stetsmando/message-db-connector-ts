@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSourceMap": true,
+    "newLine": "lf",
+    "outDir": "./lib/commonjs"
+  },
+  "exclude": [
+    "lib/**/*",
+    "src/**/*.test.ts",
+    "src/**/__fixtures__/**/*",
+    "src/**/__helpers__/**/*",
+    "src/**/__mocks__/**/*",
+  ]
+}
