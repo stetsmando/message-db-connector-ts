@@ -12,11 +12,15 @@
     "build": "yarn run build:commonjs && yarn run build:es6",
     "build:commonjs": "tsc -p tsconfig.build.commonjs.json",
     "build:es6": "tsc -p tsconfig.build.es6.json",
+    "build:messagedb": "docker build -t message-db .",
     "clean": "rm -rf lib/*",
     "lint": "yarn run lint:tsc && yarn run lint:eslint",
     "lint:eslint": "eslint src/",
     "lint:fix": "yarn run lint --fix",
     "lint:tsc": "tsc",
+    "messagedb:up": "docker run -d --name message-db -p 5432:5432 -e POSTGRES_HOST_AUTH_METHOD=trust message-db",
+    "messagedb:down": "docker stop message-db",
+    "messagedb:rm": "docker rm message-db",
     "prebuild": "yarn run clean",
     "test": "yarn run test:jest",
     "test:jest:coverage": "yarn run jest --coverage",
@@ -46,6 +50,7 @@
   "devDependencies": {
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.25",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
     "eslint": "^8.13.0",
@@ -56,5 +61,9 @@
     "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
   },
-  "dependencies": {}
+  "dependencies": {
+    "axios": "^0.26.1",
+    "tslib": "^2.3.1",
+    "uuid": "^8.3.2"
+  }
 }
