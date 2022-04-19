@@ -13,7 +13,15 @@
     "build:commonjs": "tsc -p tsconfig.build.commonjs.json",
     "build:es6": "tsc -p tsconfig.build.es6.json",
     "clean": "rm -rf lib/*",
-    "prebuild": "yarn run clean"
+    "lint": "yarn run lint:tsc && yarn run lint:eslint",
+    "lint:eslint": "eslint src/",
+    "lint:fix": "yarn run lint --fix",
+    "lint:tsc": "tsc",
+    "prebuild": "yarn run clean",
+    "test": "yarn run test:jest",
+    "test:jest:coverage": "yarn run jest --coverage",
+    "test:jest:watch": "yarn run jest --watch",
+    "test:jest": "jest"
   },
   "repository": {
     "type": "git",
@@ -36,6 +44,7 @@
   },
   "homepage": "https://github.com/stetsmando/message-db-connector#readme",
   "devDependencies": {
+    "@types/jest": "^27.4.1",
     "@types/node": "^17.0.25",
     "@typescript-eslint/eslint-plugin": "^5.20.0",
     "@typescript-eslint/parser": "^5.20.0",
@@ -43,6 +52,8 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-plugin-import": "^2.26.0",
+    "jest": "^27.5.1",
+    "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
   },
   "dependencies": {}
