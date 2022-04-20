@@ -1,4 +1,4 @@
-# Message-DB Connector
+# Message DB Connector
 
 This package provides a TypeScript interface to use [Message-DB](http://docs.eventide-project.org/user-guide/message-db/) in the development of [event sourced](https://www.youtube.com/watch?v=JHGkaShoyNs&ab_channel=CodeontheBeach) microservices.
 
