@@ -6,8 +6,8 @@ This package provides a TypeScript interface to use [Message-DB](http://docs.eve
 
 ## A brief aside
 
-Building event driven systems isn't the same thing with docker and kafka.
-It is a fundamentally different approach to building software and needs to approached that way.
+Building event driven systems isn't building the same thing but with docker and kafka.
+It is a fundamentally different approach to building software and needs to be approached in that way.
 Would you like to learn how to do that effectively?
 There are two actionable steps you can take right now are to 1) purchase [Practical Microservices](https://practicalmicroservices.com/) by Ethan Garofolo and 2) if you'll pardon the shameless plug, [connect with me](https://www.linkedin.com/in/stetsonp/) and let's talk about it.
 
