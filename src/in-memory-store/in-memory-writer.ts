@@ -56,7 +56,6 @@ export class InMemoryWriter implements MessageStoreWriter {
           && lastMessage.position! >= 0
         )
       ) {
-        console.log('We have a version conflict');
         throw new VersionConflictError(`Expected ${expectedVersion}, received ${lastMessage.position}`);
       }
 
