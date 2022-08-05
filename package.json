@@ -22,10 +22,9 @@
     "messagedb:down": "docker stop message-db",
     "messagedb:rm": "docker rm message-db",
     "prebuild": "yarn run clean",
-    "test": "yarn run test:jest",
-    "test:jest:coverage": "yarn run jest --coverage",
-    "test:jest:watch": "yarn run jest --watch",
-    "test:jest": "jest"
+    "test": "yarn run test:functional",
+    "test:functional": "jest --selectProjects functional",
+    "test:message-db": "jest --selectProjects message-db"
   },
   "repository": {
     "type": "git",
