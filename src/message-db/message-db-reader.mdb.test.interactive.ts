@@ -26,7 +26,7 @@ describe('MessageDB Reader', () => {
         streamName: otherStreamName,
         id: uuid(),
         type: 'TestEvent1',
-      }
+      };
       const writeMessages = [writeMessage1, writeMessage2, writeMessage3];
 
       for (const writeMessage of writeMessages) {
