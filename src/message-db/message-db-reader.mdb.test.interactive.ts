@@ -9,19 +9,28 @@ describe('MessageDB Reader', () => {
 
       const writeSql = 'SELECT write_message($1, $2, $3, $4, $5, $6)';
 
-      const streamName = `messageReadTest-${uuid()}`;
+      const category = 'streamReadTest';
+      const streamName = `${category}-${uuid()}`;
+      const otherStreamName = `${category}-${uuid()}`;
       const writeMessage1 = {
+        streamName,
         id: uuid(),
         type: 'TestEvent1',
       };
       const writeMessage2 = {
+        streamName,
         id: uuid(),
         type: 'TestEvent2',
       };
-      const writeMessages = [writeMessage1, writeMessage2];
+      const writeMessage3 = {
+        streamName: otherStreamName,
+        id: uuid(),
+        type: 'TestEvent1',
+      }
+      const writeMessages = [writeMessage1, writeMessage2, writeMessage3];
 
       for (const writeMessage of writeMessages) {
-        const writeResult = await db.query(writeSql, [writeMessage.id, streamName, writeMessage.type, {}, {}, null]);
+        const writeResult = await db.query(writeSql, [writeMessage.id, writeMessage.streamName, writeMessage.type, {}, {}, null]);
         if (writeResult?.rowCount !== 1) {
           process.exit(1);
         }
