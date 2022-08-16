@@ -63,7 +63,6 @@ export class MessageDbReader implements MessageStoreReader {
   }
 
   private deserialize(rawMessage : RawMessage) : Message<any> {
-    console.log(rawMessage);
     return new Message({
       id: rawMessage.id,
       streamName: rawMessage.stream_name,

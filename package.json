@@ -24,7 +24,7 @@
     "prebuild": "yarn run clean",
     "test": "yarn run test:functional",
     "test:functional": "jest --selectProjects functional",
-    "test:message-db": "jest --selectProjects message-db"
+    "test:messagedb": "jest --selectProjects message-db"
   },
   "repository": {
     "type": "git",
