@@ -51,7 +51,7 @@ export class MessageDbReader implements MessageStoreReader {
     fromPosition?: number | undefined,
     batchSize?: number | undefined,
   ): Promise<Message<any>[]> {
-    // NOTE: We can do the follow because of the MessageDb conventions surrounding stream names.
+    // NOTE: We can do the following because of the MessageDb conventions surrounding stream names.
     // Read more here: http://docs.eventide-project.org/core-concepts/streams/stream-names.html
     const isCategoryStream = !streamName.includes('-');
     const sql = isCategoryStream ? GET_CATEGORY_MESSAGES_SQL : GET_STREAM_MESSAGES_SQL;
