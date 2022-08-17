@@ -8,6 +8,7 @@ import { DB } from '.';
 const DEFAULT_CONNECTION_STRING = 'postgresql://message_store@localhost:5432/message_store';
 const GET_CATEGORY_MESSAGES_SQL = 'SELECT * FROM get_category_messages($1, $2, $3)';
 const GET_STREAM_MESSAGES_SQL = 'SELECT * FROM get_stream_messages($1, $2, $3)';
+const GET_LAST_MESSAGE_SQL = 'SELECT * FROM get_last_stream_message($1)';
 
 export interface DBOptions {
   connectionString? : string
@@ -42,8 +43,13 @@ export class MessageDbReader implements MessageStoreReader {
   }
 
   async getLastMessage(streamName: string): Promise<Message<any> | null> {
-    console.log(this, streamName);
-    return Promise.reject();
+    const rawResults = await this.db.query(GET_LAST_MESSAGE_SQL, [streamName]);
+
+    if (rawResults.rowCount <= 0) {
+      return null;
+    }
+
+    return this.deserialize(rawResults.rows[0]);
   }
 
   async getStreamMessages(

@@ -1,15 +1,18 @@
 import { v4 as uuid } from 'uuid';
 import { DB, MessageDbReader } from '.';
 
+const writeSql = 'SELECT write_message($1, $2, $3, $4, $5, $6)';
+const connectionString = 'postgresql://message_store@localhost:5432/message_store';
+
 describe('MessageDB Reader', () => {
   describe('getStreamMessages', () => {
     it('should return all stream messages, ordered correctly', async () => {
-      const connectionString = 'postgresql://message_store@localhost:5432/message_store';
       const db = await DB.Make({ connectionString });
+      const reader = await MessageDbReader.Make({
+        connectionString,
+      });
 
-      const writeSql = 'SELECT write_message($1, $2, $3, $4, $5, $6)';
-
-      const category = 'streamReadTest';
+      const category = `streamReadTest${Math.random().toString().substring(0, 6)}`;
       const streamName = `${category}-${uuid()}`;
       const otherStreamName = `${category}-${uuid()}`;
       const writeMessage1 = {
@@ -36,10 +39,6 @@ describe('MessageDB Reader', () => {
         }
       }
 
-      const reader = await MessageDbReader.Make({
-        connectionString,
-      });
-
       const [result1, result2] = await reader.getStreamMessages(streamName);
 
       expect(result1).toBeTruthy();
@@ -55,18 +54,13 @@ describe('MessageDB Reader', () => {
     });
 
     it('should return all category messages, ordered correctly', async () => {
-      const connectionString = 'postgresql://message_store@localhost:5432/message_store';
       const db = await DB.Make({ connectionString });
+      const reader = await MessageDbReader.Make({
+        connectionString,
+      });
 
-      const writeSql = 'SELECT write_message($1, $2, $3, $4, $5, $6)';
-
-      interface WriteMessage {
-        streamName: string
-        id: string
-        type: string
-      }
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;
-      const writeMessage1 : WriteMessage = {
+      const writeMessage1 = {
         streamName: `${category}-${uuid()}`,
         id: uuid(),
         type: 'TestEvent1',
@@ -84,10 +78,6 @@ describe('MessageDB Reader', () => {
           process.exit(1);
         }
       }
-
-      const reader = await MessageDbReader.Make({
-        connectionString,
-      });
 
       const results = await reader.getStreamMessages(category);
 
@@ -117,6 +107,53 @@ describe('MessageDB Reader', () => {
   });
 
   describe('getLastMessage', () => {
+    it('should return the correct last message', async () => {
+      const db = await DB.Make({ connectionString });
+      const reader = await MessageDbReader.Make({
+        connectionString,
+      });
+      const category = `getLastMessageTest${Math.random().toString().substring(0, 6)}`;
+      const streamName = `${category}-${uuid()}`;
 
+      const writeMessage1 = {
+        id: uuid(),
+        type: 'SomeMessage',
+        streamName,
+      };
+      const writeMessage2 = {
+        id: uuid(),
+        type: 'SomeMessage',
+        streamName,
+      };
+
+      const writeMessages = [writeMessage1, writeMessage2];
+
+      for (const writeMessage of writeMessages) {
+        const writeResult = await db.query(
+          writeSql,
+          [writeMessage.id, writeMessage.streamName, writeMessage.type, {}, {}, null],
+        );
+        if (writeResult?.rowCount !== 1) {
+          process.exit(1);
+        }
+      }
+
+      const lastMessage = await reader.getLastMessage(streamName);
+
+      expect(lastMessage).toBeTruthy();
+      expect(lastMessage?.id).toBe(writeMessage2.id);
+    });
+
+    it('should return null', async () => {
+      const reader = await MessageDbReader.Make({
+        connectionString,
+      });
+      const category = `getLastMessageTest${Math.random().toString().substring(0, 6)}`;
+      const streamName = `${category}-${uuid()}`;
+
+      const lastMessage = await reader.getLastMessage(streamName);
+
+      expect(lastMessage).toBeNull();
+    });
   });
 });
