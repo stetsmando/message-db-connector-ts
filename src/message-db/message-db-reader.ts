@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import {
-  Message, MessageStoreReader, Projection,
+  Message, MessageStoreReader, project, Projection,
 } from '..';
 import { DB } from '.';
 
@@ -38,8 +38,10 @@ export class MessageDbReader implements MessageStoreReader {
   }
 
   async fetch<State>(streamName: string, projection: Projection<State, any>): Promise<State> {
-    console.log(this, streamName, projection);
-    return Promise.reject();
+    const messages = await this.getStreamMessages(streamName);
+    const entity : State = await project(messages, projection);
+
+    return entity;
   }
 
   async getLastMessage(streamName: string): Promise<Message<any> | null> {
