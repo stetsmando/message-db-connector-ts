@@ -1,18 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import {
   Message, MessageStoreReader, project, Projection,
 } from '..';
-import { DB } from '.';
+import { DB, DBOptions } from './db';
 
 const DEFAULT_CONNECTION_STRING = 'postgresql://message_store@localhost:5432/message_store';
 const GET_CATEGORY_MESSAGES_SQL = 'SELECT * FROM get_category_messages($1, $2, $3)';
 const GET_STREAM_MESSAGES_SQL = 'SELECT * FROM get_stream_messages($1, $2, $3)';
 const GET_LAST_MESSAGE_SQL = 'SELECT * FROM get_last_stream_message($1)';
-
-export interface DBOptions {
-  connectionString? : string
-}
 
 interface RawMessage {
   id: string
@@ -27,6 +21,9 @@ interface RawMessage {
 
 export class MessageDbReader implements MessageStoreReader {
   db!: DB;
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() { }
 
   static async Make(options: DBOptions) {
     const me = new MessageDbReader();

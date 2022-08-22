@@ -27,9 +27,6 @@ export class DB {
       const result : QueryResult = await client.query(sql, values);
 
       return result;
-    } catch (error) {
-      console.log(error);
-      throw error;
     } finally {
       client.release(true);
     }
