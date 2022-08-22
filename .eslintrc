@@ -4,11 +4,17 @@
     "airbnb-typescript/base"
   ],
   "rules": {
+    "@typescript-eslint/lines-between-class-members": "off",
+    "@typescript-eslint/no-shadow": "off",
+    "object-curly-newline": "off",
     "import/prefer-default-export": "off",
     "lines-between-class-members": "off",
-    "@typescript-eslint/lines-between-class-members": "off",
     "no-console": "off",
-    "no-plusplus": "off"
+    "no-plusplus": "off",
+    "max-len": "off",
+    "class-methods-use-this": "off",
+    "no-restricted-syntax": "off",
+    "no-await-in-loop": "off"
   },
   "env": {
     "node": true
