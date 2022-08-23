@@ -17,7 +17,6 @@ export class MessageStore {
     this.writer = options.writer;
   }
 
-  // TODO: Add support for multi message writing
   public write(message: Message<any>, expectedVersion?: number): Promise<any> {
     return this.writer.write(message, expectedVersion);
   }
