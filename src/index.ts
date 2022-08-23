@@ -7,6 +7,7 @@ export {
 export {
   InMemoryReader, InMemoryStore, InMemoryWriter, MessageRecord, Store,
 } from './in-memory-store';
+export { MessageDbReader, MessageDbWriter } from './message-db';
 export {
   HandlerContext, MessageHandler, Position, Subscription, SubscriptionOptions,
 } from './subscription';
