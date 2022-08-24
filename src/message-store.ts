@@ -1,20 +1,31 @@
-import { Message } from './message';
-import { MessageStoreWriter } from './message-store-writer';
-import { MessageStoreReader } from './message-store-reader';
-import { Projection } from './projection';
+import {
+  Message,
+  MessageStoreReader,
+  MessageStoreWriter,
+  Projection,
+  Logger,
+  Levels,
+} from '.';
 
 export interface MessageStoreOptions {
   reader: MessageStoreReader
   writer: MessageStoreWriter
+  logLevel?: Levels
 }
 
 export class MessageStore {
   private reader: MessageStoreReader;
   private writer: MessageStoreWriter;
+  private logger: Logger;
 
   constructor(options: MessageStoreOptions) {
     this.reader = options.reader;
     this.writer = options.writer;
+    this.logger = options.logLevel
+      ? new Logger({ level: options.logLevel })
+      : new Logger();
+
+    this.logger.debug('MessageStore::constructor');
   }
 
   public write(message: Message<any>, expectedVersion?: number): Promise<any> {

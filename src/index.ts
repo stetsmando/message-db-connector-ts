@@ -14,3 +14,4 @@ export {
 export { MessageStoreWriter } from './message-store-writer';
 export { MessageStoreReader } from './message-store-reader';
 export { project, Projection } from './projection';
+export { Logger, LoggerOptions, Levels } from './logger';
