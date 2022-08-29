@@ -1,6 +1,7 @@
 import {
   Message,
   MessageStoreWriter,
+  Logger,
 } from '..';
 import { DB, DBOptions } from './db';
 
@@ -14,6 +15,7 @@ type PossibleErrors = Error | InvalidExpectedVersionError | DuplicateKeyError;
 
 export class MessageDbWriter implements MessageStoreWriter {
   private db!: DB;
+  private logger!: Logger;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
@@ -21,14 +23,21 @@ export class MessageDbWriter implements MessageStoreWriter {
   static async Make(options: DBOptions) {
     const me = new MessageDbWriter();
 
+    me.logger = options.logLevel
+      ? new Logger({ level: options.logLevel })
+      : new Logger();
+
     me.db = await DB.Make({
       connectionString: options.connectionString || DEFAULT_CONNECTION_STRING,
     });
+
+    me.logger.debug('MessageDbWriter::Make');
 
     return me;
   }
 
   async write(message: Message<any>, expectedVersion?: number | undefined): Promise<Message<any>> {
+    this.logger.debug(`MessageDbWriter::write::${message} @version:${expectedVersion}`);
     const {
       id,
       streamName,

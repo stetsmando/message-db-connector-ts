@@ -1,5 +1,4 @@
 // TODO: Tidy this file up
-export { GetOptions, PostOptions } from './http';
 export { MessageStore, MessageStoreOptions } from './message-store';
 export {
   Message, MessageBase, MessageOptions, MetaDataBase,
@@ -14,3 +13,4 @@ export {
 export { MessageStoreWriter } from './message-store-writer';
 export { MessageStoreReader } from './message-store-reader';
 export { project, Projection } from './projection';
+export { Logger, LoggerOptions, Levels } from './logger';

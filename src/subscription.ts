@@ -1,15 +1,19 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
 import { v4 as uuid } from 'uuid';
-import { Message, MessageBase } from './message';
-import { MessageStore } from './message-store';
 import InvalidStreamError from './errors/invalid-stream';
+import {
+  Message,
+  MessageBase,
+  MessageStore,
+  Logger,
+  Levels,
+} from '.';
 
 export type MessageHandler<T> = (message: T, context: HandlerContext) => Promise<any>;
 
 export interface HandlerContext {
-  // FIXME: Come back and add better log typing when doing the logging pass
-  log: (message?: any, ...optionalParams: any[]) => void,
+  logger: Logger
   messageStore: MessageStore
 }
 
@@ -26,6 +30,7 @@ export interface SubscriptionOptions {
   subscriberId: string
   batchSize?: number
   intervalTimeMs?: number
+  logLevel?: Levels
 }
 
 export class Subscription {
@@ -37,6 +42,7 @@ export class Subscription {
   private batchSize: number;
   private positionUpdateInterval: number;
   private intervalTimeMs: number;
+  private logger: Logger;
 
   private subscriberPositionStream: string;
   private currentPosition: number;
@@ -52,8 +58,11 @@ export class Subscription {
     this.positionUpdateInterval = this.batchSize;
     this.intervalTimeMs = options.intervalTimeMs || 100;
     this.handlers = {};
+    this.logger = options.logLevel
+      ? new Logger({ level: options.logLevel })
+      : new Logger();
     this.handlerContext = {
-      log: console.log,
+      logger: this.logger,
       messageStore: this.messageStore,
     };
 
@@ -73,6 +82,8 @@ export class Subscription {
         `Subscription stream must be a category. Received:${this.streamName}`,
       );
     }
+
+    this.logger.debug(`Subscription::constructor::${this.subscriberId}`);
   }
 
   public registerHandler<T>(handler: MessageHandler<T>) {
@@ -82,7 +93,7 @@ export class Subscription {
 
   public async start() {
     this.currentPosition = await this.getSubscriberPosition();
-    console.log('current position: ', this.currentPosition);
+    this.logger.debug(`Subscription::start::${this.subscriberId} current position: ${this.currentPosition}`);
 
     // Start polling for messages
     while (this.keepPolling) {
@@ -95,10 +106,12 @@ export class Subscription {
   }
 
   public signalStop(): void {
+    this.logger.debug(`Subscription::signalStop::${this.subscriberId}`);
     this.keepPolling = false;
   }
 
   private async getSubscriberPosition(): Promise<number> {
+    this.logger.debug(`Subscription::getSubscriberPosition::${this.subscriberId}`);
     const positionMessage = await this.messageStore.getLastMessage(
       this.subscriberPositionStream,
     );
@@ -110,7 +123,10 @@ export class Subscription {
     this.currentPosition = position;
     this.messagesSinceSave += 1;
 
+    this.logger.debug(`Subscription::setSubscriberPosition::${this.subscriberId}, ${position}`);
+
     if (this.messagesSinceSave >= this.positionUpdateInterval) {
+      this.logger.debug(`Subscription::setSubscriberPosition::${this.subscriberId} committing position`);
       this.messagesSinceSave = 0;
 
       const positionEvent = new Message<Position>({
@@ -128,6 +144,7 @@ export class Subscription {
   }
 
   private async tick() {
+    this.logger.debug(`Subscription::tick::${this.subscriberId}`);
     const nextBatchOfMessages = await this.messageStore.getStreamMessages(
       this.streamName,
       this.currentPosition + 1,
