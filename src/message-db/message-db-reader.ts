@@ -1,5 +1,9 @@
 import {
-  Message, MessageStoreReader, project, Projection,
+  Logger,
+  Message,
+  MessageStoreReader,
+  project,
+  Projection,
 } from '..';
 import { DB, DBOptions } from './db';
 
@@ -21,20 +25,27 @@ interface RawMessage {
 
 export class MessageDbReader implements MessageStoreReader {
   db!: DB;
+  logger!: Logger;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() { }
 
   static async Make(options: DBOptions) {
     const me = new MessageDbReader();
+    me.logger = options.logLevel
+      ? new Logger({ level: options.logLevel })
+      : new Logger();
+
     me.db = await DB.Make({
       connectionString: options.connectionString || DEFAULT_CONNECTION_STRING,
     });
 
+    me.logger.debug('MessageDbReader::Make');
     return me;
   }
 
   async fetch<State>(streamName: string, projection: Projection<State, any>): Promise<State> {
+    this.logger.debug(`MessageDbReader::fetch ${projection.name} @${streamName}`);
     const messages = await this.getStreamMessages(streamName);
     const entity : State = await project(messages, projection);
 
@@ -42,6 +53,7 @@ export class MessageDbReader implements MessageStoreReader {
   }
 
   async getLastMessage(streamName: string): Promise<Message<any> | null> {
+    this.logger.debug(`MessageDbReader::getLastMessage::${streamName}`);
     const rawResults = await this.db.query(GET_LAST_MESSAGE_SQL, [streamName]);
 
     if (rawResults.rowCount <= 0) {
@@ -56,6 +68,7 @@ export class MessageDbReader implements MessageStoreReader {
     fromPosition?: number | undefined,
     batchSize?: number | undefined,
   ): Promise<Message<any>[]> {
+    this.logger.debug(`MessageDbReader::getStreamMessages::${streamName} fromPosition${fromPosition} batchSize${batchSize}`);
     // NOTE: We can do the following because of the MessageDb conventions surrounding stream names.
     // Read more here: http://docs.eventide-project.org/core-concepts/streams/stream-names.html
     const isCategoryStream = !streamName.includes('-');
@@ -68,6 +81,7 @@ export class MessageDbReader implements MessageStoreReader {
   }
 
   private deserialize(rawMessage : RawMessage) : Message<any> {
+    this.logger.debug(`MessageDbReader::deserialize::${rawMessage}`);
     return new Message({
       id: rawMessage.id,
       streamName: rawMessage.stream_name,

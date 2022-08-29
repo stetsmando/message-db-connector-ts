@@ -29,6 +29,7 @@ export class MessageStore {
   }
 
   public write(message: Message<any>, expectedVersion?: number): Promise<any> {
+    this.logger.debug(`MessageStore::write ${message} @expectedVersion ${expectedVersion}`);
     return this.writer.write(message, expectedVersion);
   }
 
@@ -36,10 +37,12 @@ export class MessageStore {
     streamName: string,
     projection: Projection<State, any>,
   ): Promise<State> {
+    this.logger.debug(`MessageStore::fetch ${projection.name} from ${streamName} `);
     return this.reader.fetch<State>(streamName, projection);
   }
 
   public getLastMessage(streamName: string): Promise<Message<any> | null> {
+    this.logger.debug(`MessageStore::getLastMessage ${streamName}`);
     return this.reader.getLastMessage(streamName);
   }
 
@@ -48,6 +51,7 @@ export class MessageStore {
     fromPosition?: number,
     batchSize?: number,
   ):Promise<Message<any>[]> {
+    this.logger.debug(`MessageStore::getStreamMessages ${streamName} ${fromPosition} ${batchSize}`);
     return this.reader.getStreamMessages(streamName, fromPosition, batchSize);
   }
 }

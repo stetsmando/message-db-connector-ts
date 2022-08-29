@@ -12,6 +12,7 @@ import {
   InMemoryReader,
   InMemoryStore,
   InMemoryWriter,
+  Levels,
   Message,
   MessageStore,
   Subscription,
@@ -76,7 +77,7 @@ function Open(message: Message<Commands.Open>, context: HandlerContext): Promise
     },
   } = message;
 
-  context.log(`Handling ${type} command: ${id}`);
+  context.logger.info(`Handling ${type} command: ${id}`);
 
   // NOTE: This is a great place for idempotency checks to occur!
 
@@ -100,7 +101,7 @@ async function Debit(message: Message<Commands.Debit>, context: HandlerContext):
     id, type, streamName, data: { amount },
   } = message;
 
-  context.log(`Handling ${type} event: ${id}`);
+  context.logger.info(`Handling ${type} event: ${id}`);
 
   // First thing we do is run a projection to verify if there are enough funds to approve
   // the debit
@@ -174,7 +175,7 @@ function Opened(message: Message<Events.Opened>, context: HandlerContext): Promi
     },
   } = message;
 
-  context.log(`Account Opened
+  context.logger.info(`Account Opened
   position:${position}
   globalPosition:${globalPosition}
   Account:${accountId}
@@ -201,6 +202,7 @@ const commandStreamSubscription = new Subscription({
   subscriberId: commandSubscriberId,
   batchSize,
   intervalTimeMs,
+  logLevel: Levels.Debug,
 });
 
 commandStreamSubscription.registerHandler<Message<Commands.Open>>(Open);
@@ -212,6 +214,7 @@ const entityStreamSubscription = new Subscription({
   subscriberId: entitySubscriberId,
   batchSize,
   intervalTimeMs,
+  logLevel: Levels.Debug,
 });
 
 entityStreamSubscription.registerHandler<Message<Events.Opened>>(Opened);

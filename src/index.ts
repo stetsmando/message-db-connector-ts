@@ -1,5 +1,4 @@
 // TODO: Tidy this file up
-export { GetOptions, PostOptions } from './http';
 export { MessageStore, MessageStoreOptions } from './message-store';
 export {
   Message, MessageBase, MessageOptions, MetaDataBase,
