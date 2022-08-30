@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-shadow */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/naming-convention */
-
 // This test will simulate a component running in the wild.
 // The situation being tested is if a subscription will detect
 // a stimulus command and start a process.
@@ -9,17 +5,16 @@
 import { v4 as uuid } from 'uuid';
 import {
   HandlerContext,
-  InMemoryReader,
-  InMemoryStore,
-  InMemoryWriter,
   Levels,
   Message,
   MessageStore,
+  MessageDbReader,
+  MessageDbWriter,
   Subscription,
 } from '..';
 import { Projection } from '../projection';
 
-export namespace Commands {
+namespace Commands {
   export interface Open {
     type: 'Open'
     data: {
@@ -38,8 +33,7 @@ export namespace Commands {
     data: { amount: number }
   }
 }
-
-export namespace Events {
+namespace Events {
   export interface Opened {
     type: 'Opened'
     data: {
@@ -62,12 +56,53 @@ export namespace Events {
     data: { reason: string }
   }
 }
+namespace Entities {
+  export interface AccountBalance {
+    balance: number
+    streamPosition: number
+    debits: Record<string, boolean>
+    deposits: Record<string, boolean>
+  }
+}
 
-const commandCategory = 'account:command';
+const accountBalanceProjection: Projection<Entities.AccountBalance, Message<any>> = {
+  init: { balance: 0, streamPosition: -1, debits: {}, deposits: {} },
+  name: 'AccountBalanceProjection',
+  handlers: {
+    Debited(account: Entities.AccountBalance, message: Message<Events.Debited>) {
+      const { balance, debits, deposits } = account;
+      const { id, position, data: { amount } } = message;
+
+      return {
+        balance: balance - amount,
+        streamPosition: position!,
+        debits: { ...debits, [id]: true },
+        deposits,
+      };
+    },
+    Deposited(account: Entities.AccountBalance, message: Message<Events.Deposited>) {
+      const { balance, debits, deposits } = account;
+      const { id, position, data: { amount } } = message;
+
+      return {
+        balance: balance + amount,
+        streamPosition: position!,
+        debits,
+        deposits: { ...deposits, [id]: true },
+      };
+    },
+  },
+};
+
+const DEFAULT_CONNECTION_STRING = 'postgresql://message_store@localhost:5432/message_store';
+const LOG_LEVEL = Levels.Info;
+const entity = `subscriptionTest${Math.random().toString().substring(0, 6)}`;
+const commandCategory = `${entity}:command`;
 const commandSubscriberId = uuid();
-const entityCategory = 'account';
-const entitySubscriberId = uuid();
 const accountId = uuid();
+const entityStream = `${entity}-${accountId}`;
+const batchSize = 1;
+const intervalTimeMs = 100;
 
 // Declare our Command handler functions
 function Open(message: Message<Commands.Open>, context: HandlerContext): Promise<void> {
@@ -84,7 +119,7 @@ function Open(message: Message<Commands.Open>, context: HandlerContext): Promise
   const opened = new Message<Events.Opened>({
     id: uuid(),
     type: 'Opened',
-    streamName: `${entityCategory}-${accountId}`,
+    streamName: `${entity}-${accountId}`,
     data: {
       accountId,
       firstName,
@@ -94,52 +129,38 @@ function Open(message: Message<Commands.Open>, context: HandlerContext): Promise
     metadata: { ...message.metadata },
   });
 
-  return context.messageStore.write(opened, 0);
+  return context.messageStore.write(opened, -1);
 }
-async function Debit(message: Message<Commands.Debit>, context: HandlerContext): Promise<any> {
+async function Debit(message: Message<Commands.Debit>, context: HandlerContext): Promise<any | null> {
   const {
-    id, type, streamName, data: { amount },
+    id, type, data: { amount },
   } = message;
 
   context.logger.info(`Handling ${type} event: ${id}`);
 
   // First thing we do is run a projection to verify if there are enough funds to approve
   // the debit
-  interface Account {
-    balance: number
-    streamPosition: number
-  }
 
-  const projection: Projection<Account, Message<any>> = {
-    init: { balance: 0, streamPosition: 0 },
-    name: 'AccountBalance',
-    handlers: {
-      Debited(state: Account, message: Message<Events.Debited>) {
-        const { balance } = state;
-        const { position, data: { amount } } = message;
-
-        return { balance: balance - amount, streamPosition: position! };
-      },
-      Deposited(state: Account, message: Message<Events.Deposited>) {
-        const { balance } = state;
-        const { position, data: { amount } } = message;
-
-        return { balance: balance + amount, streamPosition: position! };
-      },
-    },
-  };
-
-  const { balance, streamPosition } = await context.messageStore.fetch<Account>(
-    streamName,
-    projection,
+  const {
+    balance,
+    streamPosition,
+    debits,
+  } = await context.messageStore.fetch<Entities.AccountBalance>(
+    entityStream,
+    accountBalanceProjection,
   );
+
+  if (debits[id]) {
+    // We're in the past and have already processed this message
+    return null;
+  }
 
   if (amount > balance) {
     // Funds are too low for the debit, reject
     const debitRejected = new Message<Events.DebitRejected>({
       id: uuid(),
       type: 'DebitRejected',
-      streamName: `${entityCategory}-${accountId}`,
+      streamName: `${entity}-${accountId}`,
       data: {
         reason: 'You broke fool.',
       },
@@ -149,80 +170,88 @@ async function Debit(message: Message<Commands.Debit>, context: HandlerContext):
     // NOTE: The streamPosition + 1 gives us concurrence safety. This is because if
     // another instance of this component were to write to that stream our position
     // would no longer be correct and the DB will throw and version conflict error
-    return context.messageStore.write(debitRejected, streamPosition + 1);
+    return context.messageStore.write(debitRejected, streamPosition);
   }
 
   // We're good and the money is there
   const debited = new Message<Events.Debited>({
     id: uuid(),
     type: 'Debited',
-    streamName: `${entityCategory}-${accountId}`,
+    streamName: `${entity}-${accountId}`,
     data: {
       amount,
     },
     metadata: { ...message.metadata },
   });
 
-  return context.messageStore.write(debited, streamPosition + 1);
+  // NOTE: The streamPosition + 1 gives us concurrence safety. This is because if
+  // another instance of this component were to write to that stream our position
+  // would no longer be correct and the DB will throw and version conflict error
+  return context.messageStore.write(debited, streamPosition);
 }
 
-// Declare our Event handler functions
-function Opened(message: Message<Events.Opened>, context: HandlerContext): Promise<void> {
+async function Deposit(message: Message<Commands.Deposit>, context: HandlerContext): Promise<void | null> {
   const {
-    position, globalPosition, data: {
-      // eslint-disable-next-line @typescript-eslint/no-shadow
-      accountId, firstName, lastName, time,
-    },
+    id, type, data: { amount },
   } = message;
 
-  context.logger.info(`Account Opened
-  position:${position}
-  globalPosition:${globalPosition}
-  Account:${accountId}
-  Owner:${firstName} ${lastName}
-  Time: ${new Date(time).toLocaleString()}`);
+  context.logger.info(`Handling ${type} event: ${id}`);
 
-  return Promise.resolve();
+  const {
+    streamPosition,
+    deposits,
+  } = await context.messageStore.fetch<Entities.AccountBalance>(
+    entityStream,
+    accountBalanceProjection,
+  );
+
+  if (deposits[id]) {
+    // We're in the past and have already processed this message
+    return null;
+  }
+
+  const deposited = new Message<Events.Deposited>({
+    id: uuid(),
+    type: 'Deposited',
+    streamName: entityStream,
+    data: { amount },
+    metadata: { ...message.metadata },
+  });
+
+  return context.messageStore.write(deposited, streamPosition + 1);
 }
 
-const batchSize = 1;
-const intervalTimeMs = 100;
-const inMemoryStore = new InMemoryStore();
-const inMemoryReader = new InMemoryReader(inMemoryStore);
-const inMemoryWriter = new InMemoryWriter(inMemoryStore);
+// Declare out Event handler functions
+async function AsyncWrapper() {
+  const reader = await MessageDbReader.Make({
+    connectionString: DEFAULT_CONNECTION_STRING,
+    logLevel: LOG_LEVEL,
+  });
+  const writer = await MessageDbWriter.Make({
+    connectionString: DEFAULT_CONNECTION_STRING,
+    logLevel: LOG_LEVEL,
+  });
+  const messageStore = new MessageStore({
+    reader,
+    writer,
+    logLevel: LOG_LEVEL,
+  });
 
-const messageStore = new MessageStore({
-  reader: inMemoryReader,
-  writer: inMemoryWriter,
-});
+  const commandStreamSubscription = new Subscription({
+    messageStore,
+    streamName: commandCategory,
+    subscriberId: commandSubscriberId,
+    batchSize,
+    intervalTimeMs,
+    logLevel: Levels.Debug,
+  });
 
-const commandStreamSubscription = new Subscription({
-  messageStore,
-  streamName: commandCategory,
-  subscriberId: commandSubscriberId,
-  batchSize,
-  intervalTimeMs,
-  logLevel: Levels.Debug,
-});
+  commandStreamSubscription.registerHandler<Message<Commands.Open>>(Open);
+  commandStreamSubscription.registerHandler<Message<Commands.Debit>>(Debit);
+  commandStreamSubscription.registerHandler<Message<Commands.Deposit>>(Deposit);
 
-commandStreamSubscription.registerHandler<Message<Commands.Open>>(Open);
-commandStreamSubscription.registerHandler<Message<Commands.Debit>>(Debit);
+  commandStreamSubscription.start();
 
-const entityStreamSubscription = new Subscription({
-  messageStore,
-  streamName: entityCategory,
-  subscriberId: entitySubscriberId,
-  batchSize,
-  intervalTimeMs,
-  logLevel: Levels.Debug,
-});
-
-entityStreamSubscription.registerHandler<Message<Events.Opened>>(Opened);
-
-commandStreamSubscription.start();
-entityStreamSubscription.start();
-
-setTimeout(() => {
   const openCommand = new Message<Commands.Open>({
     id: uuid(),
     type: 'Open',
@@ -236,32 +265,50 @@ setTimeout(() => {
     metadata: {
       traceId: uuid(),
     },
-    position: 0,
-    globalPosition: 1,
-    time: new Date().toISOString(),
   });
 
-  inMemoryWriter.write(openCommand);
-  setTimeout(() => {
-    const debit = new Message<Commands.Debit>({
-      id: uuid(),
-      streamName: `${commandCategory}-${accountId}`,
-      type: 'Debit',
-      data: {
-        amount: 100,
-      },
-      metadata: {
-        traceId: uuid(),
-      },
-    });
+  await writer.write(openCommand);
 
-    inMemoryWriter.write(debit);
-  }, 200);
-}, 100);
+  const depositCommand = new Message<Commands.Deposit>({
+    id: uuid(),
+    type: 'Deposit',
+    streamName: `${commandCategory}-${accountId}`,
+    data: { amount: 100 },
+    metadata: { traceId: uuid() },
+  });
 
-setTimeout(() => {
-  commandStreamSubscription.signalStop();
-  entityStreamSubscription.signalStop();
+  await writer.write(depositCommand);
 
-  console.log(JSON.stringify({ store: inMemoryStore.store }, null, 2));
-}, 1000);
+  const firstDebitCommand = new Message<Commands.Debit>({
+    id: uuid(),
+    streamName: `${commandCategory}-${accountId}`,
+    type: 'Debit',
+    data: {
+      amount: 75,
+    },
+    metadata: {
+      traceId: uuid(),
+    },
+  });
+
+  await writer.write(firstDebitCommand);
+
+  const secondDebitCommand = new Message<Commands.Debit>({
+    id: uuid(),
+    streamName: `${commandCategory}-${accountId}`,
+    type: 'Debit',
+    data: {
+      amount: 75,
+    },
+    metadata: {
+      traceId: uuid(),
+    },
+  });
+
+  await writer.write(secondDebitCommand);
+  // setTimeout(() => {
+  //   commandStreamSubscription.signalStop();
+  // }, 5000);
+}
+
+AsyncWrapper();
