@@ -37,7 +37,7 @@ export class MessageDbWriter implements MessageStoreWriter {
   }
 
   async write(message: Message<any>, expectedVersion?: number | undefined): Promise<Message<any>> {
-    this.logger.debug(`MessageDbWriter::write::${message} @version:${expectedVersion}`);
+    this.logger.debug(`MessageDbWriter::write::${JSON.stringify(message)} @version:${expectedVersion}`);
     const {
       id,
       streamName,
