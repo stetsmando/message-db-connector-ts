@@ -60,7 +60,7 @@ export class MessageDbWriter implements MessageStoreWriter {
 
     const { message } = error as Error;
     if (message.includes('Wrong expected version')) {
-      toThrow = new InvalidExpectedVersionError();
+      toThrow = new InvalidExpectedVersionError(message);
     } else if (message.includes('duplicate key value violates unique constraint "messages_id"')) {
       toThrow = new DuplicateKeyError();
     } else {
