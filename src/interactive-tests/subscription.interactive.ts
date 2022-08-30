@@ -224,11 +224,15 @@ async function Deposit(message: Message<Commands.Deposit>, context: HandlerConte
 // Declare out Event handler functions
 async function AsyncWrapper() {
   const reader = await MessageDbReader.Make({
-    connectionString: DEFAULT_CONNECTION_STRING,
+    pgConnectionConfig: {
+      connectionString: DEFAULT_CONNECTION_STRING,
+    },
     logLevel: LOG_LEVEL,
   });
   const writer = await MessageDbWriter.Make({
-    connectionString: DEFAULT_CONNECTION_STRING,
+    pgConnectionConfig: {
+      connectionString: DEFAULT_CONNECTION_STRING,
+    },
     logLevel: LOG_LEVEL,
   });
   const messageStore = new MessageStore({

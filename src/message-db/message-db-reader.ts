@@ -36,9 +36,18 @@ export class MessageDbReader implements MessageStoreReader {
       ? new Logger({ level: options.logLevel })
       : new Logger();
 
-    me.db = await DB.Make({
-      connectionString: options.connectionString || DEFAULT_CONNECTION_STRING,
-    });
+    me.db = options.logLevel
+      ? await DB.Make({
+        pgConnectionConfig: {
+          connectionString: DEFAULT_CONNECTION_STRING,
+        },
+        logLevel: options.logLevel,
+      })
+      : await DB.Make({
+        pgConnectionConfig: {
+          connectionString: DEFAULT_CONNECTION_STRING,
+        },
+      });
 
     me.logger.debug('MessageDbReader::Make');
     return me;
