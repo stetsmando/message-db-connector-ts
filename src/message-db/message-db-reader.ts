@@ -77,10 +77,10 @@ export class MessageDbReader implements MessageStoreReader {
 
     const rawResults = await this.db.query(sql, values);
 
-    return rawResults.rows.map(this.deserialize);
+    return rawResults.rows.map(this.deserialize, this);
   }
 
-  private deserialize(rawMessage : RawMessage) : Message<any> {
+  deserialize(rawMessage : RawMessage) : Message<any> {
     this.logger.debug(`MessageDbReader::deserialize::${rawMessage}`);
     return new Message({
       id: rawMessage.id,
