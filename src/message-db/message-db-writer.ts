@@ -55,7 +55,7 @@ export class MessageDbWriter implements MessageStoreWriter {
     }
   }
 
-  whatToThrow(error: unknown): PossibleErrors {
+  private whatToThrow(error: unknown): PossibleErrors {
     let toThrow: PossibleErrors;
 
     const { message } = error as Error;

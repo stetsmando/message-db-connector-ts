@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import { Message, Levels } from '..';
+import { Message } from '..';
 import { DB, MessageDbWriter } from '.';
 import InvalidExpectedVersionError from '../errors/invalid-expected-version';
 import DuplicateKeyError from '../errors/duplicate-key';
@@ -13,7 +13,6 @@ describe('MessageDB Writer', () => {
       const db = await DB.Make({ connectionString });
       const writer = await MessageDbWriter.Make({
         connectionString,
-        logLevel: Levels.Debug,
       });
 
       interface TestMessage {
