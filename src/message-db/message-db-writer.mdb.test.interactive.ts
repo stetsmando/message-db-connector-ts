@@ -10,8 +10,16 @@ const readSql = 'SELECT * FROM messages WHERE id=$1';
 describe('MessageDB Writer', () => {
   describe('write', () => {
     it('should write a message to the database', async () => {
-      const db = await DB.Make({ connectionString });
-      const writer = await MessageDbWriter.Make({ connectionString });
+      const db = await DB.Make({
+        pgConnectionConfig: {
+          connectionString,
+        },
+      });
+      const writer = await MessageDbWriter.Make({
+        pgConnectionConfig: {
+          connectionString,
+        },
+      });
 
       interface TestMessage {
         type: 'TestMessage'
@@ -46,8 +54,16 @@ describe('MessageDB Writer', () => {
     });
 
     it('should write a message to the database with a proper expected version', async () => {
-      const db = await DB.Make({ connectionString });
-      const writer = await MessageDbWriter.Make({ connectionString });
+      const db = await DB.Make({
+        pgConnectionConfig: {
+          connectionString,
+        },
+      });
+      const writer = await MessageDbWriter.Make({
+        pgConnectionConfig: {
+          connectionString,
+        },
+      });
 
       interface TestMessage {
         type: 'TestMessage'
@@ -88,7 +104,11 @@ describe('MessageDB Writer', () => {
     });
 
     it('should throw when improper expected version is given', async () => {
-      const writer = await MessageDbWriter.Make({ connectionString });
+      const writer = await MessageDbWriter.Make({
+        pgConnectionConfig: {
+          connectionString,
+        },
+      });
 
       interface TestMessage {
         type: 'TestMessage'
@@ -118,7 +138,11 @@ describe('MessageDB Writer', () => {
     });
 
     it('should throw when an message id already exists', async () => {
-      const writer = await MessageDbWriter.Make({ connectionString });
+      const writer = await MessageDbWriter.Make({
+        pgConnectionConfig: {
+          connectionString,
+        },
+      });
 
       interface TestMessage {
         type: 'TestMessage'

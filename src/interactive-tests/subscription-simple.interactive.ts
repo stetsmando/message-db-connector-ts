@@ -66,8 +66,16 @@ async function AThingHappened(message: Message<MyEvent>, context: HandlerContext
 }
 
 async function AsyncWrapper() {
-  const reader = await MessageDbReader.Make({ connectionString: DEFAULT_CONNECTION_STRING });
-  const writer = await MessageDbWriter.Make({ connectionString: DEFAULT_CONNECTION_STRING });
+  const reader = await MessageDbReader.Make({
+    pgConnectionConfig: {
+      connectionString: DEFAULT_CONNECTION_STRING,
+    },
+  });
+  const writer = await MessageDbWriter.Make({
+    pgConnectionConfig: {
+      connectionString: DEFAULT_CONNECTION_STRING,
+    },
+  });
   const messageStore = new MessageStore({ reader, writer, logLevel: LOG_LEVEL });
 
   const commandStreamSubscription = new Subscription({

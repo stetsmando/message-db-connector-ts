@@ -8,9 +8,11 @@ const connectionString = 'postgresql://message_store@localhost:5432/message_stor
 describe('MessageDB Reader', () => {
   describe('getStreamMessages', () => {
     it('should return all stream messages, ordered correctly', async () => {
-      const db = await DB.Make({ connectionString });
+      const db = await DB.Make({ pgConnectionConfig: { connectionString } });
       const reader = await MessageDbReader.Make({
-        connectionString,
+        pgConnectionConfig: {
+          connectionString,
+        },
       });
 
       const category = `streamReadTest${Math.random().toString().substring(0, 6)}`;
@@ -55,9 +57,11 @@ describe('MessageDB Reader', () => {
     });
 
     it('should return all category messages, ordered correctly', async () => {
-      const db = await DB.Make({ connectionString });
+      const db = await DB.Make({ pgConnectionConfig: { connectionString } });
       const reader = await MessageDbReader.Make({
-        connectionString,
+        pgConnectionConfig: {
+          connectionString,
+        },
       });
 
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;
@@ -109,10 +113,13 @@ describe('MessageDB Reader', () => {
 
   describe('getLastMessage', () => {
     it('should return the correct last message', async () => {
-      const db = await DB.Make({ connectionString });
+      const db = await DB.Make({ pgConnectionConfig: { connectionString } });
       const reader = await MessageDbReader.Make({
-        connectionString,
+        pgConnectionConfig: {
+          connectionString,
+        },
       });
+
       const category = `getLastMessageTest${Math.random().toString().substring(0, 6)}`;
       const streamName = `${category}-${uuid()}`;
 
@@ -147,7 +154,9 @@ describe('MessageDB Reader', () => {
 
     it('should return null', async () => {
       const reader = await MessageDbReader.Make({
-        connectionString,
+        pgConnectionConfig: {
+          connectionString,
+        },
       });
       const category = `getLastMessageTest${Math.random().toString().substring(0, 6)}`;
       const streamName = `${category}-${uuid()}`;
@@ -176,9 +185,11 @@ describe('MessageDB Reader', () => {
           amount: number
         }
       }
-      const db = await DB.Make({ connectionString });
+      const db = await DB.Make({ pgConnectionConfig: { connectionString } });
       const reader = await MessageDbReader.Make({
-        connectionString,
+        pgConnectionConfig: {
+          connectionString,
+        },
       });
 
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;
@@ -243,9 +254,10 @@ describe('MessageDB Reader', () => {
         id: string | null
         balance: number
       }
-
       const reader = await MessageDbReader.Make({
-        connectionString,
+        pgConnectionConfig: {
+          connectionString,
+        },
       });
 
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;

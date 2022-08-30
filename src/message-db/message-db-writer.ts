@@ -27,9 +27,18 @@ export class MessageDbWriter implements MessageStoreWriter {
       ? new Logger({ level: options.logLevel })
       : new Logger();
 
-    me.db = await DB.Make({
-      connectionString: options.connectionString || DEFAULT_CONNECTION_STRING,
-    });
+    me.db = options.logLevel
+      ? await DB.Make({
+        pgConnectionConfig: {
+          connectionString: DEFAULT_CONNECTION_STRING,
+        },
+        logLevel: options.logLevel,
+      })
+      : await DB.Make({
+        pgConnectionConfig: {
+          connectionString: DEFAULT_CONNECTION_STRING,
+        },
+      });
 
     me.logger.debug('MessageDbWriter::Make');
 
@@ -37,7 +46,7 @@ export class MessageDbWriter implements MessageStoreWriter {
   }
 
   async write(message: Message<any>, expectedVersion?: number | undefined): Promise<Message<any>> {
-    this.logger.debug(`MessageDbWriter::write::${message} @version:${expectedVersion}`);
+    this.logger.debug(`MessageDbWriter::write::${JSON.stringify(message)} @version:${expectedVersion}`);
     const {
       id,
       streamName,
@@ -55,12 +64,12 @@ export class MessageDbWriter implements MessageStoreWriter {
     }
   }
 
-  whatToThrow(error: unknown): PossibleErrors {
+  private whatToThrow(error: unknown): PossibleErrors {
     let toThrow: PossibleErrors;
 
     const { message } = error as Error;
     if (message.includes('Wrong expected version')) {
-      toThrow = new InvalidExpectedVersionError();
+      toThrow = new InvalidExpectedVersionError(message);
     } else if (message.includes('duplicate key value violates unique constraint "messages_id"')) {
       toThrow = new DuplicateKeyError();
     } else {

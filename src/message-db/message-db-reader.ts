@@ -36,9 +36,18 @@ export class MessageDbReader implements MessageStoreReader {
       ? new Logger({ level: options.logLevel })
       : new Logger();
 
-    me.db = await DB.Make({
-      connectionString: options.connectionString || DEFAULT_CONNECTION_STRING,
-    });
+    me.db = options.logLevel
+      ? await DB.Make({
+        pgConnectionConfig: {
+          connectionString: DEFAULT_CONNECTION_STRING,
+        },
+        logLevel: options.logLevel,
+      })
+      : await DB.Make({
+        pgConnectionConfig: {
+          connectionString: DEFAULT_CONNECTION_STRING,
+        },
+      });
 
     me.logger.debug('MessageDbReader::Make');
     return me;
@@ -77,10 +86,10 @@ export class MessageDbReader implements MessageStoreReader {
 
     const rawResults = await this.db.query(sql, values);
 
-    return rawResults.rows.map(this.deserialize);
+    return rawResults.rows.map(this.deserialize, this);
   }
 
-  private deserialize(rawMessage : RawMessage) : Message<any> {
+  deserialize(rawMessage : RawMessage) : Message<any> {
     this.logger.debug(`MessageDbReader::deserialize::${rawMessage}`);
     return new Message({
       id: rawMessage.id,
