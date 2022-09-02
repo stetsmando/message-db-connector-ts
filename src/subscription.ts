@@ -83,7 +83,7 @@ export class Subscription {
       );
     }
 
-    this.logger.debug(`Subscription::constructor::${this.subscriberId}`);
+    this.logger.info(`Subscription::constructor::${this.subscriberId}`);
   }
 
   public registerHandler<T>(handler: MessageHandler<T>) {
@@ -93,7 +93,7 @@ export class Subscription {
 
   public async start() {
     this.currentPosition = await this.getSubscriberPosition();
-    this.logger.debug(`Subscription::start::${this.subscriberId} current position: ${this.currentPosition}`);
+    this.logger.info(`Subscription::start::${this.subscriberId} current position: ${this.currentPosition}`);
 
     // Start polling for messages
     while (this.keepPolling) {
@@ -106,7 +106,7 @@ export class Subscription {
   }
 
   public signalStop(): void {
-    this.logger.debug(`Subscription::signalStop::${this.subscriberId}`);
+    this.logger.info(`Subscription::signalStop::${this.subscriberId}`);
     this.keepPolling = false;
   }
 
@@ -144,7 +144,7 @@ export class Subscription {
   }
 
   private async tick() {
-    this.logger.debug(`Subscription::tick::${this.subscriberId}`);
+    this.logger.verbose(`Subscription::tick::${this.subscriberId}`);
     const nextBatchOfMessages = await this.messageStore.getStreamMessages(
       this.streamName,
       this.currentPosition + 1,
@@ -152,8 +152,10 @@ export class Subscription {
     );
 
     for (const message of nextBatchOfMessages) {
-      const { type, globalPosition } = message;
+      const { id, type, globalPosition } = message;
+      this.logger.debug(`Subscription::tick::${this.subscriberId} ${type}:${id}`);
       if (this.handlers[type]) {
+        this.logger.debug(`Subscription::tick::${this.subscriberId} ${type}:${id} Found Handler`);
         await this.handlers[type](message, this.handlerContext);
       }
 
