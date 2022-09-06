@@ -155,7 +155,7 @@ export class Subscription {
       const { id, type, globalPosition } = message;
       this.logger.debug(`Subscription::tick::${this.subscriberId} ${type}:${id}`);
       if (this.handlers[type]) {
-        this.logger.debug(`Subscription::tick::${this.subscriberId} ${type}:${id} Found Handler`);
+        this.logger.info(`Subscription::tick::${this.subscriberId} ${type}:${id} Found Handler`);
         await this.handlers[type](message, this.handlerContext);
       }
 
