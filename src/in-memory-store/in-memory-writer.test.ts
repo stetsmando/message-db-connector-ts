@@ -12,10 +12,10 @@ interface CustomMessage {
 describe('In memory writer', () => {
   it('should write a message successfully', async () => {
     const category = 'testingCategory';
-    const streamId = uuid();
+    const streamId = uuid({ disableEntropyCache: true });
     const streamName = `${category}-${streamId}`;
     const messageOptions : MessageOptions<CustomMessage> = {
-      id: uuid(),
+      id: uuid({ disableEntropyCache: true }),
       streamName,
       type: 'CustomMessage',
       data: {
@@ -41,10 +41,10 @@ describe('In memory writer', () => {
 
   it('should throw version conflict errors', async () => {
     const category = 'testingCategory';
-    const streamId = uuid();
+    const streamId = uuid({ disableEntropyCache: true });
     const streamName = `${category}-${streamId}`;
     const messageOptions1 : MessageOptions<CustomMessage> = {
-      id: uuid(),
+      id: uuid({ disableEntropyCache: true }),
       streamName,
       type: 'CustomMessage',
       data: {
@@ -54,7 +54,7 @@ describe('In memory writer', () => {
       time: new Date().toISOString(),
     };
     const messageOptions2 : MessageOptions<CustomMessage> = {
-      id: uuid(),
+      id: uuid({ disableEntropyCache: true }),
       streamName,
       type: 'CustomMessage',
       data: {

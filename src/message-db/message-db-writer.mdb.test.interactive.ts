@@ -1,4 +1,5 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+
 import { Message } from '..';
 import { DB, MessageDbWriter } from '.';
 import InvalidExpectedVersionError from '../errors/invalid-expected-version';
@@ -28,7 +29,7 @@ describe('MessageDB Writer', () => {
         }
       }
 
-      const id = uuid();
+      const id = uuid({ disableEntropyCache: true });
       const category = `streamReadTest${Math.random().toString().substring(0, 6)}`;
       const streamName = `${category}-${id}`;
 
@@ -72,7 +73,7 @@ describe('MessageDB Writer', () => {
         }
       }
 
-      const id = uuid();
+      const id = uuid({ disableEntropyCache: true });
 
       // NOTE: If you're writing the first message to a stream expected version needs to be
       // -1, however, the value that actually gets written is 0. It's weird, but is what it is.
@@ -117,7 +118,7 @@ describe('MessageDB Writer', () => {
         }
       }
 
-      const id = uuid();
+      const id = uuid({ disableEntropyCache: true });
       const invalidExpectedVersion = 100;
       const category = `streamReadTest${Math.random().toString().substring(0, 6)}`;
       const streamName = `${category}-${id}`;
@@ -151,7 +152,7 @@ describe('MessageDB Writer', () => {
         }
       }
 
-      const id = uuid();
+      const id = uuid({ disableEntropyCache: true });
       const category = `streamReadTest${Math.random().toString().substring(0, 6)}`;
       const streamName = `${category}-${id}`;
 

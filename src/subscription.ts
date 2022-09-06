@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-await-in-loop */
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import InvalidStreamError from './errors/invalid-stream';
 import {
   Message,
@@ -130,7 +130,7 @@ export class Subscription {
       this.messagesSinceSave = 0;
 
       const positionEvent = new Message<Position>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'PositionCommitted',
         streamName: this.subscriberPositionStream,
         data: {

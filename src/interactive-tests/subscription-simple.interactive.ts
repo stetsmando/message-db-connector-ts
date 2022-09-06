@@ -2,7 +2,8 @@
 // The situation being tested is if a subscription will detect
 // a stimulus command and start a process.
 
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+
 import {
   HandlerContext,
   Levels,
@@ -34,9 +35,9 @@ const entity = `subscriptionTest${Math.random().toString().substring(0, 6)}`;
 const commandCategory = `${entity}:command`;
 const batchSize = 1;
 const intervalTimeMs = 100;
-const commandSubscriberId = uuid();
-const entitySubscriberId = uuid();
-const entityId = uuid();
+const commandSubscriberId = uuid({ disableEntropyCache: true });
+const entitySubscriberId = uuid({ disableEntropyCache: true });
+const entityId = uuid({ disableEntropyCache: true });
 
 // Declare our Command handler functions
 async function DoAThing(message: Message<MyCommand>, context: HandlerContext): Promise<void> {
@@ -47,7 +48,7 @@ async function DoAThing(message: Message<MyCommand>, context: HandlerContext): P
   context.logger.info(`Handling ${type} command: ${id}`);
 
   const AThingHappened = new Message<MyEvent>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     type: 'AThingHappened',
     streamName: `${entity}-${randomId}`,
     data: { randomId },
@@ -105,7 +106,7 @@ async function AsyncWrapper() {
 
   setTimeout(async () => {
     const myCommand = new Message<MyCommand>({
-      id: uuid(),
+      id: uuid({ disableEntropyCache: true }),
       type: 'DoAThing',
       streamName: `${commandCategory}-${entityId}`,
       data: { randomId: entityId },

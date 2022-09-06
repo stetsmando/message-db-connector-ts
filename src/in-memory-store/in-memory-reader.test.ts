@@ -1,4 +1,5 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+
 import { InMemoryReader } from './in-memory-reader';
 import { InMemoryStore } from './store';
 import { Message, Projection } from '..';
@@ -18,10 +19,10 @@ describe('In memory reader', () => {
     it('should successfully fetch an entity', async () => {
       const inMemoryStore = new InMemoryStore();
       const category = 'transactions';
-      const streamName = `${category}-${uuid()}`;
+      const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
 
       const msg1 = new Message<Deposit>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'Deposit',
         streamName,
         data: { amount: 100 },
@@ -31,7 +32,7 @@ describe('In memory reader', () => {
         time: new Date().toISOString(),
       });
       const msg2 = new Message<Deposit>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'Deposit',
         streamName,
         data: { amount: 50 },
@@ -41,7 +42,7 @@ describe('In memory reader', () => {
         time: new Date().toISOString(),
       });
       const msg3 = new Message<Debit>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'Debit',
         streamName,
         data: { amount: 75 },
@@ -91,10 +92,10 @@ describe('In memory reader', () => {
     it('should get the correct last message', async () => {
       const inMemoryStore = new InMemoryStore();
       const category = 'transactions';
-      const streamName = `${category}-${uuid()}`;
+      const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
 
       const msg1 = new Message<Deposit>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'Deposit',
         streamName,
         data: { amount: 100 },
@@ -105,7 +106,7 @@ describe('In memory reader', () => {
       });
 
       const msg2 = new Message<Deposit>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'Deposit',
         streamName,
         data: { amount: 150 },
@@ -128,7 +129,7 @@ describe('In memory reader', () => {
     it('should return null', async () => {
       const inMemoryStore = new InMemoryStore();
       const category = 'transactions';
-      const streamName = `${category}-${uuid()}`;
+      const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
 
       const reader = new InMemoryReader(inMemoryStore);
       expect(await reader.getLastMessage(streamName)).toStrictEqual(null);
@@ -140,10 +141,10 @@ describe('In memory reader', () => {
       it('should return the correct messages', async () => {
         const inMemoryStore = new InMemoryStore();
         const category = 'transactions';
-        const streamName = `${category}-${uuid()}`;
+        const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
 
         const msg1 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName,
           data: { amount: 100 },
@@ -153,7 +154,7 @@ describe('In memory reader', () => {
           time: new Date().toISOString(),
         });
         const msg2 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName,
           data: { amount: 50 },
@@ -180,13 +181,13 @@ describe('In memory reader', () => {
         }
 
         const category = 'transactions';
-        const streamName = `${category}-${uuid()}`;
+        const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
         const msg = new Message<Simple>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Simple',
           data: {},
           metadata: {},
-          streamName: `${category}-${uuid()}`,
+          streamName: `${category}-${uuid({ disableEntropyCache: true })}`,
           position: 0,
           globalPosition: 1,
           time: new Date().toISOString(),
@@ -194,7 +195,7 @@ describe('In memory reader', () => {
         const inMemoryStore = new InMemoryStore();
         inMemoryStore.store = {
           transactions: {
-            [`transactions-${uuid()}`]: [msg],
+            [`transactions-${uuid({ disableEntropyCache: true })}`]: [msg],
           },
         };
         inMemoryStore.globalPosition = 2; // Manually setting this because not using write()
@@ -206,12 +207,12 @@ describe('In memory reader', () => {
     describe('category streams', () => {
       it('should return all category messages, order correctly', async () => {
         const category = 'transactions';
-        const stream1 = `${category}-${uuid()}`;
-        const stream2 = `${category}-${uuid()}`;
-        const stream3 = `${category}-${uuid()}`;
+        const stream1 = `${category}-${uuid({ disableEntropyCache: true })}`;
+        const stream2 = `${category}-${uuid({ disableEntropyCache: true })}`;
+        const stream3 = `${category}-${uuid({ disableEntropyCache: true })}`;
 
         const msg1 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream1,
           data: { amount: 100 },
@@ -222,7 +223,7 @@ describe('In memory reader', () => {
         });
 
         const msg2 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream2,
           data: { amount: 75 },
@@ -233,7 +234,7 @@ describe('In memory reader', () => {
         });
 
         const msg3 = new Message<Debit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Debit',
           streamName: stream1,
           data: { amount: 50 },
@@ -244,7 +245,7 @@ describe('In memory reader', () => {
         });
 
         const msg4 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream3,
           data: { amount: 5 },
@@ -270,12 +271,12 @@ describe('In memory reader', () => {
 
       it('should return some category messages, order correctly', async () => {
         const category = 'transactions';
-        const stream1 = `${category}-${uuid()}`;
-        const stream2 = `${category}-${uuid()}`;
-        const stream3 = `${category}-${uuid()}`;
+        const stream1 = `${category}-${uuid({ disableEntropyCache: true })}`;
+        const stream2 = `${category}-${uuid({ disableEntropyCache: true })}`;
+        const stream3 = `${category}-${uuid({ disableEntropyCache: true })}`;
 
         const msg1 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream1,
           data: { amount: 100 },
@@ -286,7 +287,7 @@ describe('In memory reader', () => {
         });
 
         const msg2 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream2,
           data: { amount: 75 },
@@ -297,7 +298,7 @@ describe('In memory reader', () => {
         });
 
         const msg3 = new Message<Debit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Debit',
           streamName: stream1,
           data: { amount: 50 },
@@ -308,7 +309,7 @@ describe('In memory reader', () => {
         });
 
         const msg4 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream3,
           data: { amount: 5 },
@@ -335,10 +336,10 @@ describe('In memory reader', () => {
       it('should not return anything if category is empty', async () => {
         const unpopulatedCategory = 'notTransactions';
         const populatedCategory = 'transactions';
-        const stream = `${populatedCategory}-${uuid()}`;
+        const stream = `${populatedCategory}-${uuid({ disableEntropyCache: true })}`;
 
         const msg1 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream,
           data: { amount: 100 },
@@ -349,7 +350,7 @@ describe('In memory reader', () => {
         });
 
         const msg2 = new Message<Deposit>({
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           type: 'Deposit',
           streamName: stream,
           data: { amount: 75 },

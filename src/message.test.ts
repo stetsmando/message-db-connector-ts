@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import InvalidIdError from './errors/invalid-id';
 import InvalidTimeError from './errors/invalid-time';
 import { Message, MessageOptions } from './message';
@@ -15,7 +15,7 @@ describe('Message', () => {
     it('should construct normally', () => {
       const isoDate = new Date().toISOString();
       const options : MessageOptions<CustomMessage> = {
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         streamName: 'customMessage-e1b3ee7c-cafd-465c-80f8-c209d29f481a',
         type: 'CustomMessage',
         data: {

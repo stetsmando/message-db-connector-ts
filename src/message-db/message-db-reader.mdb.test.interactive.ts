@@ -1,4 +1,5 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+
 import { Projection, Message } from '..';
 import { DB, MessageDbReader } from '.';
 
@@ -16,21 +17,21 @@ describe('MessageDB Reader', () => {
       });
 
       const category = `streamReadTest${Math.random().toString().substring(0, 6)}`;
-      const streamName = `${category}-${uuid()}`;
-      const otherStreamName = `${category}-${uuid()}`;
+      const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
+      const otherStreamName = `${category}-${uuid({ disableEntropyCache: true })}`;
       const writeMessage1 = {
         streamName,
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'TestEvent1',
       };
       const writeMessage2 = {
         streamName,
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'TestEvent2',
       };
       const writeMessage3 = {
         streamName: otherStreamName,
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'TestEvent1',
       };
       const writeMessages = [writeMessage1, writeMessage2, writeMessage3];
@@ -66,13 +67,13 @@ describe('MessageDB Reader', () => {
 
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;
       const writeMessage1 = {
-        streamName: `${category}-${uuid()}`,
-        id: uuid(),
+        streamName: `${category}-${uuid({ disableEntropyCache: true })}`,
+        id: uuid({ disableEntropyCache: true }),
         type: 'TestEvent1',
       };
       const writeMessage2 = {
-        streamName: `${category}-${uuid()}`,
-        id: uuid(),
+        streamName: `${category}-${uuid({ disableEntropyCache: true })}`,
+        id: uuid({ disableEntropyCache: true }),
         type: 'TestEvent2',
       };
       const writeMessages = [writeMessage1, writeMessage2];
@@ -121,15 +122,15 @@ describe('MessageDB Reader', () => {
       });
 
       const category = `getLastMessageTest${Math.random().toString().substring(0, 6)}`;
-      const streamName = `${category}-${uuid()}`;
+      const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
 
       const writeMessage1 = {
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'SomeMessage',
         streamName,
       };
       const writeMessage2 = {
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'SomeMessage',
         streamName,
       };
@@ -159,7 +160,7 @@ describe('MessageDB Reader', () => {
         },
       });
       const category = `getLastMessageTest${Math.random().toString().substring(0, 6)}`;
-      const streamName = `${category}-${uuid()}`;
+      const streamName = `${category}-${uuid({ disableEntropyCache: true })}`;
 
       const lastMessage = await reader.getLastMessage(streamName);
 
@@ -193,11 +194,11 @@ describe('MessageDB Reader', () => {
       });
 
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;
-      const accountId = uuid();
+      const accountId = uuid({ disableEntropyCache: true });
       const streamName = `${category}-${accountId}`;
       const writeMessages = [
         {
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           streamName,
           type: 'Deposited',
           data: {
@@ -205,7 +206,7 @@ describe('MessageDB Reader', () => {
           },
         },
         {
-          id: uuid(),
+          id: uuid({ disableEntropyCache: true }),
           streamName,
           type: 'Debited',
           data: {
@@ -261,7 +262,7 @@ describe('MessageDB Reader', () => {
       });
 
       const category = `categoryReadTest${Math.random().toString().substring(0, 6)}`;
-      const accountId = uuid();
+      const accountId = uuid({ disableEntropyCache: true });
       const streamName = `${category}-${accountId}`;
       const init : Account = {
         id: null,

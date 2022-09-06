@@ -1,4 +1,5 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
+
 import { Message, MessageBase } from '.';
 import { project, Projection } from './projection';
 
@@ -25,9 +26,9 @@ describe('Projection', () => {
     const lastName = 'Doe';
     const messages : Message<AllMessages>[] = [
       new Message<CustomMessage>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'CustomMessage',
-        streamName: `someCategory-${uuid()}`,
+        streamName: `someCategory-${uuid({ disableEntropyCache: true })}`,
         data: {
           firstName,
           lastName,
@@ -35,9 +36,9 @@ describe('Projection', () => {
         metadata: {},
       }),
       new Message<AnotherOne>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'AnotherOne',
-        streamName: `someCategory-${uuid()}`,
+        streamName: `someCategory-${uuid({ disableEntropyCache: true })}`,
         data: {
           isDj: true,
         },
@@ -81,11 +82,11 @@ describe('Projection', () => {
   });
 
   it('should project non instanced messages', () => {
-    const streamName = `someCategory-${uuid()}`;
+    const streamName = `someCategory-${uuid({ disableEntropyCache: true })}`;
 
     const messages: Message<any>[] = [
       JSON.parse(JSON.stringify(new Message<AnotherOne>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'AnotherOne',
         streamName,
         data: {
@@ -97,7 +98,7 @@ describe('Projection', () => {
         time: new Date().toISOString(),
       }))),
       JSON.parse(JSON.stringify(new Message<AnotherOne>({
-        id: uuid(),
+        id: uuid({ disableEntropyCache: true }),
         type: 'AnotherOne',
         streamName,
         data: {

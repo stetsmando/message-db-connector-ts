@@ -2,7 +2,7 @@
 // The situation being tested is if a subscription will detect
 // a stimulus command and start a process.
 
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import {
   HandlerContext,
   Levels,
@@ -98,8 +98,8 @@ const DEFAULT_CONNECTION_STRING = 'postgresql://message_store@localhost:5432/mes
 const LOG_LEVEL = Levels.Info;
 const entity = `subscriptionTest${Math.random().toString().substring(0, 6)}`;
 const commandCategory = `${entity}:command`;
-const commandSubscriberId = uuid();
-const accountId = uuid();
+const commandSubscriberId = uuid({ disableEntropyCache: true });
+const accountId = uuid({ disableEntropyCache: true });
 const entityStream = `${entity}-${accountId}`;
 const batchSize = 1;
 const intervalTimeMs = 100;
@@ -117,7 +117,7 @@ function Open(message: Message<Commands.Open>, context: HandlerContext): Promise
   // NOTE: This is a great place for idempotency checks to occur!
 
   const opened = new Message<Events.Opened>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     type: 'Opened',
     streamName: `${entity}-${accountId}`,
     data: {
@@ -158,7 +158,7 @@ async function Debit(message: Message<Commands.Debit>, context: HandlerContext):
   if (amount > balance) {
     // Funds are too low for the debit, reject
     const debitRejected = new Message<Events.DebitRejected>({
-      id: uuid(),
+      id: uuid({ disableEntropyCache: true }),
       type: 'DebitRejected',
       streamName: `${entity}-${accountId}`,
       data: {
@@ -175,7 +175,7 @@ async function Debit(message: Message<Commands.Debit>, context: HandlerContext):
 
   // We're good and the money is there
   const debited = new Message<Events.Debited>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     type: 'Debited',
     streamName: `${entity}-${accountId}`,
     data: {
@@ -211,7 +211,7 @@ async function Deposit(message: Message<Commands.Deposit>, context: HandlerConte
   }
 
   const deposited = new Message<Events.Deposited>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     type: 'Deposited',
     streamName: entityStream,
     data: { amount },
@@ -257,7 +257,7 @@ async function AsyncWrapper() {
   commandStreamSubscription.start();
 
   const openCommand = new Message<Commands.Open>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     type: 'Open',
     streamName: `${commandCategory}-${accountId}`,
     data: {
@@ -267,45 +267,45 @@ async function AsyncWrapper() {
       time: new Date().toISOString(),
     },
     metadata: {
-      traceId: uuid(),
+      traceId: uuid({ disableEntropyCache: true }),
     },
   });
 
   await writer.write(openCommand);
 
   const depositCommand = new Message<Commands.Deposit>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     type: 'Deposit',
     streamName: `${commandCategory}-${accountId}`,
     data: { amount: 100 },
-    metadata: { traceId: uuid() },
+    metadata: { traceId: uuid({ disableEntropyCache: true }) },
   });
 
   await writer.write(depositCommand);
 
   const firstDebitCommand = new Message<Commands.Debit>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     streamName: `${commandCategory}-${accountId}`,
     type: 'Debit',
     data: {
       amount: 75,
     },
     metadata: {
-      traceId: uuid(),
+      traceId: uuid({ disableEntropyCache: true }),
     },
   });
 
   await writer.write(firstDebitCommand);
 
   const secondDebitCommand = new Message<Commands.Debit>({
-    id: uuid(),
+    id: uuid({ disableEntropyCache: true }),
     streamName: `${commandCategory}-${accountId}`,
     type: 'Debit',
     data: {
       amount: 75,
     },
     metadata: {
-      traceId: uuid(),
+      traceId: uuid({ disableEntropyCache: true }),
     },
   });
 
