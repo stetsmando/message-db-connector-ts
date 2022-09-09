@@ -13,7 +13,7 @@ export interface LoggerOptions {
   level: Levels
 }
 export class Logger {
-  level: Levels;
+  readonly level: Levels;
 
   constructor(options?: LoggerOptions) {
     this.level = options

@@ -14,9 +14,9 @@ export interface MessageStoreOptions {
 }
 
 export class MessageStore {
+  public logger: Logger;
   private reader: MessageStoreReader;
   private writer: MessageStoreWriter;
-  private logger: Logger;
 
   constructor(options: MessageStoreOptions) {
     this.reader = options.reader;
