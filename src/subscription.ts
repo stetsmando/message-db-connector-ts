@@ -86,8 +86,8 @@ export class Subscription {
     this.logger.info(`Subscription::constructor::${this.subscriberId}`);
   }
 
-  public registerHandler<T>(handler: MessageHandler<T>) {
-    const { name } = handler;
+  public registerHandler<T>(handler: MessageHandler<T>, messageName?: string) {
+    const name = messageName || handler.name;
     this.handlers[name] = handler;
   }
 

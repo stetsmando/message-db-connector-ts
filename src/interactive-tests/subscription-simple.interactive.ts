@@ -57,7 +57,7 @@ async function DoAThing(message: Message<MyCommand>, context: HandlerContext): P
 
   await context.messageStore.write(AThingHappened);
 }
-async function AThingHappened(message: Message<MyEvent>, context: HandlerContext): Promise<any> {
+async function MyEventHandler(message: Message<MyEvent>, context: HandlerContext): Promise<any> {
   const {
     id, type, data: { randomId },
   } = message;
@@ -99,7 +99,7 @@ async function AsyncWrapper() {
     logLevel: LOG_LEVEL,
   });
 
-  entityStreamSubscription.registerHandler<Message<MyEvent>>(AThingHappened);
+  entityStreamSubscription.registerHandler<Message<MyEvent>>(MyEventHandler, 'AThingHappened');
 
   commandStreamSubscription.start();
   entityStreamSubscription.start();
