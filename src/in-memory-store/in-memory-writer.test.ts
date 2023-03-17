@@ -1,4 +1,4 @@
-import { v4 as uuid } from 'uuid';
+import { randomUUID as uuid } from 'crypto';
 import { InMemoryWriter } from './in-memory-writer';
 import { InMemoryStore } from './store';
 import { Message, MessageOptions } from '..';
