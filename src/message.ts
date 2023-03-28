@@ -1,3 +1,5 @@
+import { randomUUID as uuid } from 'crypto';
+
 import InvalidIdError from './errors/invalid-id';
 import InvalidTimeError from './errors/invalid-time';
 
@@ -38,6 +40,13 @@ export interface MetaDataBase {
   replyStreamName?: string
   schemaVersion?: string
   traceId?: string
+}
+
+interface FollowOptions<T extends MessageBase> {
+  type: T['type'],
+  streamName?: string,
+  include?: Set<string> | null,
+  exclude?: Set<string>,
 }
 
 export class Message<T extends MessageBase> {
@@ -82,5 +91,53 @@ export class Message<T extends MessageBase> {
   public static isIsoDate(t:string) : Boolean {
     const isoTimePattern = /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/;
     return isoTimePattern.test(t);
+  }
+
+  public follow<T extends MessageBase>(options: FollowOptions<T>): Message<T> {
+    const { type, streamName, include, exclude } = options;
+    let data: any = {};
+
+    if (include) {
+      Object.keys(this.data).forEach((attribute: string) => {
+        if (include.has(attribute)) {
+          data[attribute] = this.data[attribute as keyof typeof this.data];
+        }
+      });
+    } else if (exclude) {
+      Object.keys(this.data).forEach((attribute) => {
+        if (!exclude.has(attribute)) {
+          data[attribute] = this.data[attribute as keyof typeof this.data];
+        }
+      });
+    } else {
+      data = this.data;
+    }
+
+    const metadata: MetaDataBase = {};
+
+    metadata.causationMessageStreamName = this.streamName;
+
+    if (this.position && this.globalPosition) {
+      metadata.causationMessagePosition = this.position;
+      metadata.causationMessageGlobalPosition = this.globalPosition;
+    }
+
+    if (this.metadata.correlationStreamName) {
+      metadata.correlationStreamName = this.metadata.correlationStreamName;
+    }
+
+    if (this.metadata.traceId) {
+      metadata.traceId = this.metadata.traceId;
+    }
+
+    const messageOptions: MessageOptions<T> = {
+      id: uuid({ disableEntropyCache: true }),
+      streamName: streamName || this.streamName,
+      type,
+      data,
+      metadata,
+    };
+
+    return new Message<T>(messageOptions);
   }
 }
