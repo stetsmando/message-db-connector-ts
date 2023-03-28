@@ -1,7 +1,7 @@
 import { randomUUID as uuid } from 'crypto';
 import InvalidIdError from './errors/invalid-id';
 import InvalidTimeError from './errors/invalid-time';
-import { Message, MessageOptions } from './message';
+import { Message, MessageOptions, MetaDataBase } from './message';
 
 interface CustomMessage {
   type: 'CustomMessage'
@@ -68,6 +68,142 @@ describe('Message', () => {
       };
 
       expect(() => new Message(options)).toThrow(InvalidTimeError);
+    });
+  });
+
+  describe('Follow', () => {
+    interface Leader {
+      type: 'LeaderMessage'
+      data: {
+        someProp: boolean
+        anotherProp: boolean
+      }
+    }
+
+    it('should follow a simple message successfully', () => {
+      interface Follower {
+        type: 'Follower',
+        data: {
+          someProp: boolean
+          anotherProp: boolean
+        }
+      }
+
+      const options: MessageOptions<Leader> = {
+        id: 'd6be4dff-cd3e-4ee8-a561-cec3ecc0d8a1',
+        streamName: 'follow-393ef873-d86d-4009-ad93-186d6de1862a',
+        type: 'LeaderMessage',
+        data: {
+          someProp: true,
+          anotherProp: true,
+        },
+        metadata: {
+          traceId: '3cc09d96-8408-484f-a10f-ae66fd244076',
+        },
+        position: 10,
+        globalPosition: 110,
+      };
+
+      const leader = new Message<Leader>(options);
+      const follower = leader.follow<Follower>({ type: 'Follower' });
+      const expectedMetaData: MetaDataBase = {
+        causationMessageStreamName: options.streamName,
+        causationMessagePosition: options.position,
+        causationMessageGlobalPosition: options.globalPosition,
+        traceId: options.metadata.traceId,
+      };
+
+      expect(follower.data).toStrictEqual(leader.data);
+      expect(follower.metadata).toStrictEqual(expectedMetaData);
+    });
+
+    it('should follow a simple message successfully with inclusions', () => {
+      interface Follower {
+        type: 'Follower',
+        data: {
+          someProp: boolean
+        }
+      }
+
+      const options: MessageOptions<Leader> = {
+        id: '49a3b0e9-a80d-4058-a13f-579140a452c3',
+        streamName: 'follow-514a4535-0ea7-4d4f-8332-6db3df601327',
+        type: 'LeaderMessage',
+        data: {
+          someProp: true,
+          anotherProp: true,
+        },
+        metadata: {
+          traceId: '2c01797c-1ab0-4152-9d35-67fbb4e465e1',
+        },
+        position: 10,
+        globalPosition: 110,
+      };
+
+      const leader = new Message<Leader>(options);
+      const include = new Set(['someProp']);
+      const follower = leader.follow<Follower>({
+        type: 'Follower',
+        streamName: options.streamName,
+        include,
+      });
+      const expectedData: Follower['data'] = {
+        someProp: true,
+      };
+      const expectedMetaData: MetaDataBase = {
+        causationMessageStreamName: options.streamName,
+        causationMessagePosition: options.position,
+        causationMessageGlobalPosition: options.globalPosition,
+        traceId: options.metadata.traceId,
+      };
+
+      expect(follower.streamName).toBe(options.streamName);
+      expect(follower.data).toStrictEqual(expectedData);
+      expect(follower.metadata).toStrictEqual(expectedMetaData);
+    });
+
+    it('should follow a simple message successfully with exclusions', () => {
+      interface Follower {
+        type: 'Follower',
+        data: {
+          someProp: boolean
+        }
+      }
+
+      const options: MessageOptions<Leader> = {
+        id: '49a3b0e9-a80d-4058-a13f-579140a452c3',
+        streamName: 'follow-514a4535-0ea7-4d4f-8332-6db3df601327',
+        type: 'LeaderMessage',
+        data: {
+          someProp: true,
+          anotherProp: true,
+        },
+        metadata: {
+          traceId: '2c01797c-1ab0-4152-9d35-67fbb4e465e1',
+        },
+        position: 10,
+        globalPosition: 110,
+      };
+
+      const leader = new Message<Leader>(options);
+      const exclude = new Set(['anotherProp']);
+      const follower = leader.follow<Follower>({
+        type: 'Follower',
+        exclude,
+      });
+      const expectedData: Follower['data'] = {
+        someProp: true,
+      };
+      const expectedMetaData: MetaDataBase = {
+        causationMessageStreamName: options.streamName,
+        causationMessagePosition: options.position,
+        causationMessageGlobalPosition: options.globalPosition,
+        traceId: options.metadata.traceId,
+      };
+
+      expect(follower.streamName).toBe(options.streamName);
+      expect(follower.data).toStrictEqual(expectedData);
+      expect(follower.metadata).toStrictEqual(expectedMetaData);
     });
   });
 });

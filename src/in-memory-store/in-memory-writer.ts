@@ -19,7 +19,10 @@ export class InMemoryWriter implements MessageStoreWriter {
     message: Message<any>,
     expectedVersion?: number,
   ) : Promise<Message<any>> {
-    const incoming : Message<any> = { ...message };
+    const incoming: Message<any> = {
+      ...message,
+      follow: message.follow,
+    };
 
     // Extract the category from the stream name
     const { streamName } = incoming;
@@ -39,7 +42,7 @@ export class InMemoryWriter implements MessageStoreWriter {
       if (!this.inMemoryStore.store[category]) {
         this.inMemoryStore.store[category] = {};
       }
-      this.inMemoryStore.store[category][streamName] = [{ ...incoming }];
+      this.inMemoryStore.store[category][streamName] = [{ ...incoming, follow: incoming.follow }];
     } else {
       // We have messages already
       const currentStream : Message<any>[] = this.inMemoryStore.store[category][streamName];
