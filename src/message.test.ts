@@ -100,6 +100,43 @@ describe('Message', () => {
         metadata: {
           traceId: '3cc09d96-8408-484f-a10f-ae66fd244076',
         },
+        position: 0,
+        globalPosition: 1,
+      };
+
+      const leader = new Message<Leader>(options);
+      const follower = leader.follow<Follower>({ type: 'Follower' });
+      const expectedMetaData: MetaDataBase = {
+        causationMessageStreamName: options.streamName,
+        causationMessagePosition: options.position,
+        causationMessageGlobalPosition: options.globalPosition,
+        traceId: options.metadata.traceId,
+      };
+
+      expect(follower.data).toStrictEqual(leader.data);
+      expect(follower.metadata).toStrictEqual(expectedMetaData);
+    });
+
+    it('should follow a simple message successfully with position', () => {
+      interface Follower {
+        type: 'Follower',
+        data: {
+          someProp: boolean
+          anotherProp: boolean
+        }
+      }
+
+      const options: MessageOptions<Leader> = {
+        id: 'd6be4dff-cd3e-4ee8-a561-cec3ecc0d8a1',
+        streamName: 'follow-393ef873-d86d-4009-ad93-186d6de1862a',
+        type: 'LeaderMessage',
+        data: {
+          someProp: true,
+          anotherProp: true,
+        },
+        metadata: {
+          traceId: '3cc09d96-8408-484f-a10f-ae66fd244076',
+        },
         position: 10,
         globalPosition: 110,
       };
@@ -110,6 +147,39 @@ describe('Message', () => {
         causationMessageStreamName: options.streamName,
         causationMessagePosition: options.position,
         causationMessageGlobalPosition: options.globalPosition,
+        traceId: options.metadata.traceId,
+      };
+
+      expect(follower.data).toStrictEqual(leader.data);
+      expect(follower.metadata).toStrictEqual(expectedMetaData);
+    });
+
+    it('should follow a simple message successfully without position', () => {
+      interface Follower {
+        type: 'Follower',
+        data: {
+          someProp: boolean
+          anotherProp: boolean
+        }
+      }
+
+      const options: MessageOptions<Leader> = {
+        id: 'd6be4dff-cd3e-4ee8-a561-cec3ecc0d8a1',
+        streamName: 'follow-393ef873-d86d-4009-ad93-186d6de1862a',
+        type: 'LeaderMessage',
+        data: {
+          someProp: true,
+          anotherProp: true,
+        },
+        metadata: {
+          traceId: '3cc09d96-8408-484f-a10f-ae66fd244076',
+        },
+      };
+
+      const leader = new Message<Leader>(options);
+      const follower = leader.follow<Follower>({ type: 'Follower' });
+      const expectedMetaData: MetaDataBase = {
+        causationMessageStreamName: options.streamName,
         traceId: options.metadata.traceId,
       };
 

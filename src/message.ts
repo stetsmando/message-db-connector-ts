@@ -117,9 +117,9 @@ export class Message<T extends MessageBase> {
 
     metadata.causationMessageStreamName = this.streamName;
 
-    if (this.position && this.globalPosition) {
-      metadata.causationMessagePosition = this.position;
-      metadata.causationMessageGlobalPosition = this.globalPosition;
+    if ((this.position === 0 || this.globalPosition === 1) || (this.position && this.globalPosition)) {
+      metadata.causationMessagePosition = this.position!;
+      metadata.causationMessageGlobalPosition = this.globalPosition!;
     }
 
     if (this.metadata.correlationStreamName) {
