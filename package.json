@@ -1,6 +1,6 @@
 {
   "name": "message-db-connector",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "A simple TypeScript interface for MessageDB interaction",
   "main": "lib/commonjs",
   "module": "lib/es6",
