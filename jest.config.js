@@ -14,7 +14,7 @@ module.exports = {
       resetMocks: true,
       restoreMocks: true,
       testRegex: '(/__tests__/.*|(\\.|/)test)\\.tsx?$',
-      testEnvironment: 'jsdom',
+      testEnvironment: 'node',
       transform: {
         '^.+\\.tsx?$': 'ts-jest',
       },
@@ -33,7 +33,7 @@ module.exports = {
       resetMocks: true,
       restoreMocks: true,
       testRegex: '(/__tests__/.*|(\\.|/)mdb.test.interactive)\\.tsx?$',
-      testEnvironment: 'jsdom',
+      testEnvironment: 'node',
       transform: {
         '^.+\\.tsx?$': 'ts-jest',
       },
