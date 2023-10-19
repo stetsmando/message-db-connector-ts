@@ -131,4 +131,115 @@ describe('Projection', () => {
       toggle: false,
     });
   });
+
+  it('Should reset initial projection value to avoid mutative bugs', () => {
+    interface InitialMessage extends MessageBase {
+      type: 'InitialMessage'
+      data: {
+        numberOfThings: number
+      }
+    }
+
+    interface SubsequentMessage extends MessageBase {
+      type: 'SubsequentMessage'
+      data: {}
+    }
+
+    const streamId1 = uuid({ disableEntropyCache: true });
+    const streamId2 = uuid({ disableEntropyCache: true });
+
+    const initialMessage1Id = '92de190d-9993-42e7-9064-8e8051c9660d';
+    const subsequentMessage1Id = '961d4900-a59f-450f-9bc9-ddfbbe1f7e4f';
+    const initialMessage2Id = 'cf43dd94-230b-4ea6-8f71-de0312014757';
+    const subsequentMessage2Id = '6d5e116e-7ce2-4a7b-9043-e064060e83f3';
+
+    const messages1: Message<any>[] = [
+      new Message<InitialMessage>({
+        id: initialMessage1Id,
+        type: 'InitialMessage',
+        streamName: `projectionTests-${streamId1}`,
+        data: {
+          numberOfThings: 2,
+        },
+        metadata: {},
+      }),
+      new Message<SubsequentMessage>({
+        id: subsequentMessage1Id,
+        type: 'SubsequentMessage',
+        streamName: `projectionTests-${streamId1}`,
+        data: {},
+        metadata: {},
+      }),
+    ];
+
+    const messages2: Message<any>[] = [
+      new Message<InitialMessage>({
+        id: initialMessage2Id,
+        type: 'InitialMessage',
+        streamName: `projectionTests-${streamId2}`,
+        data: {
+          numberOfThings: 1,
+        },
+        metadata: {},
+      }),
+      new Message<SubsequentMessage>({
+        id: subsequentMessage2Id,
+        type: 'SubsequentMessage',
+        streamName: `projectionTests-${streamId2}`,
+        data: {},
+        metadata: {},
+      }),
+    ];
+
+    interface State {
+      numberOfThings: number,
+      subsequentMessagesSeen: { [key: string]: boolean }
+    }
+
+    const projection : Projection<State, Message<any>> = {
+      init: {
+        numberOfThings: 0,
+        subsequentMessagesSeen: {},
+      },
+      name: 'thingProjection',
+      handlers: {
+        InitialMessage(thing: State, initialMessage: Message<InitialMessage>) {
+          const { data: { numberOfThings } } = initialMessage;
+
+          return {
+            ...thing,
+            numberOfThings,
+          };
+        },
+        SubsequentMessage(thing: State, subsequentMessage: Message<SubsequentMessage>) {
+          const { subsequentMessagesSeen } = thing;
+          const { id } = subsequentMessage;
+
+          subsequentMessagesSeen[id] = true;
+
+          return {
+            ...thing,
+            subsequentMessagesSeen,
+          };
+        },
+      },
+    };
+
+    const expectedResults1: State = {
+      numberOfThings: 2,
+      subsequentMessagesSeen: {
+        [subsequentMessage1Id]: true,
+      },
+    };
+
+    const expectedResults2: State = {
+      numberOfThings: 1,
+      subsequentMessagesSeen: {
+        [subsequentMessage2Id]: true,
+      },
+    };
+
+    expect(project(messages1, projection)).toEqual(expectedResults1);
+    expect(project(messages2, projection)).toEqual(expectedResults2);
+  });
 });

@@ -11,6 +11,8 @@ export interface Projection<State, MessageType> {
 
 export function project<T, K, S>(messages: T[], projection: K): S;
 export function project(messages: Message<any>[], projection: Projection<any, any>) {
+  const init = structuredClone(projection.init);
+
   return messages.reduce((state, message: Message<any>) => {
     const { type } = message;
 
@@ -19,5 +21,5 @@ export function project(messages: Message<any>[], projection: Projection<any, an
     }
 
     return projection.handlers[message.type](state, message);
-  }, projection.init);
+  }, init);
 }
